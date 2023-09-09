@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Barcode Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body{
+          padding: 0;
+          margin: 0;
+          text-decoration: none;
+          list-style: none;
+          box-sizing: border-box;
+          font-family: montserrat;
+        }
+        nav{
+          background: #0082e6;
+          height: 80px;
+          width: 100%;
+        }
+        label.logo{
+          color: white;
+          font-size: 35px;
+          line-height: 80px;
+          padding: 0 100px;
+          font-weight: bold;
+        }
+        nav ul{
+          float: right;
+          margin-right: 20px;
+        }
+        nav ul li{
+          display: inline-block;
+          line-height: 80px;
+          margin: 0 5px;
+        }
+        nav ul li a{
+          color: white;
+          font-size: 17px;
+          padding: 7px 13px;
+          border-radius: 3px;
+          text-transform: uppercase;
+        }
+        a.active,a:hover{
+          background: #1b9bff;
+          transition: .5s;
+        } 
+        .checkbtn{
+          font-size: 30px;
+          color: white;
+          float: right;
+          line-height:80px;
+          margin-right: 40px;
+          cursor: pointer;
+          display: none;
+        } 
+        #check{
+          display: none;
+        }
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 0;
+        }
+       .navbar {
+          background-color: #333;
+          color: #fff;
+          padding: 10px;
+        }
+        .title {
+          margin: 0;
+          padding: 10px;
+        }
+        .data-table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 20px;
+        }
+        .data-table th,.data-table td {
+          border: 1px solid #ccc;
+          padding: 8px;
+          text-align: center;
+        }
+        .data-table th {
+          background-color: #f2f2f2;
+        }
+        .data-table tr:nth-child(even) {
+        background-color: #f2f2f2;
+        }
+        .data-table tr:hover {
+          background-color: #ddd;
+        }
+        .styled-button {
+          background-color: #4CAF50;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          margin-left:110px;
+        }
+        .styled-button:hover {
+          background-color: #45a049;
+        }
+        .quantity-button {
+          background-color: #ccc;
+          border: none;
+          padding: 8px 12px;
+          font-size: 16px;
+          cursor: pointer;
+        }
+        .navbar {
+          position: relative;
+        }
+       .logout-button {
+         background-color: #ff0000;
+         color: white;
+         padding: 10px 20px;
+         border: none;
+         border-radius: 4px;
+         cursor: pointer;
+         margin-left:150px;
+       }
+      .inventory-management {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-left:50px;
+      }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <label class="logo">Billing Interface</label>
+    <button class="inventory-management" id="inventoryButton">Inventory Management Page</button>
+    <button class="logout-button" id="logoutButton">Logout</button>
+    <button id="paidButton" class="styled-button">Paid</button>
+  </nav>
+
+  <section>
+    <div class="d-flex flex-row justify-content-center">
+      <div>
+        <h1 class="select-heading">You can start Billing, please choose a file to select the product!</h1>
+      </div>
+      <div>
+        <h1>QR Code Reader</h1>
+        <form id="uploadForm" enctype="multipart/form-data">
+          <input type="file" id="fileInput" accept=".png" />
+        </form>
+      </div>
+    </div>
+
+    <!-- The data-table to display scanned barcodes -->
+    <table class="data-table" id="dataTable">
+      <!-- Sample table header -->
+      <tr>
+        <th>Serial</th>
+        <th>Product Name</th>
+        <th>Quantity</th>
+        <th>Cost</th>
+      </tr>
+    </table>
+  <!-- <p id="decodedData"></p> -->
+  <div id="totalCostContainer">
+    <strong>Total Cost:</strong>
+    <span id="totalCost">$0.00</span>
+  </div>
+</section>
+  <script>
+    console.log('hi')
+    let product_global;
+    let productCosts = {};
+    scannedItems=[];
+    document.getElementById('fileInput').addEventListener('change', handleSubmit);
+    function handleSubmit(evt) {
+        evt.preventDefault();
+        const formData = new FormData();
+        formData.append('fileInput', document.getElementById('fileInput').files[0]);
+        fetch('/upload', {
+        method: 'POST',
+        body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+        console.log('QR Code Data:', data.qrData);
+        // document.getElementById('decodedData').innerText = 'Decoded QR Code: ' + data.qrData;
+        const check_intial=data.productdata.finalPrice
+        const productdata = { ...data.productdata, quantity: 1,initialPrice: check_intial };
+        product_global ={...productdata}
+        console.log('product,global',product_global)
+        console.log('QR Code Data:', productdata);
+        // addRowToTable(productdata);
+        scannedItems.push(productdata);
+        updateTable()
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        });
+    }
+
+    function changeQuantity(row, change) {
+        console.log("row",row)
+        const quantitySpan = row.querySelector('.quantity');
+        let currentQuantity = parseInt(quantitySpan.textContent);
+        let newQuantity = currentQuantity + change;
+        if (newQuantity < 0) {
+        newQuantity = 0;
+        }
+        quantitySpan.textContent = newQuantity;
+        console.log(newQuantity)
+
+        const product_data = {
+        productId: product_global.productId,
+        finalPrice: product_global.finalPrice,
+        // initialPrice:product_global.initialPrice,
+        // price: parseFloat(row.cells[3].textContent.replace('$', '')),
+        quantity: newQuantity,
+        };
+        console.log('before',scannedItems)
+        const product_ref = parseInt(row.parentNode.dataset.productid,10);
+        console.log('ramsaiid',product_ref)
+        const scannedItemIndex = scannedItems.findIndex(item => item.productId === product_ref);
+        console.log('index',scannedItemIndex)
+        if (scannedItemIndex !== -1) {
+            scannedItems[scannedItemIndex].quantity = newQuantity;
+            intialprice_p=scannedItems[scannedItemIndex].initialPrice
+        }
+        console.log('after',scannedItems)
+        console.log('product_data_in cahngr',intialprice_p)
+        const row_2 = row.parentNode;
+        console.log("row_2",row_2)
+        const costCell = row_2.cells[3];
+        console.log('costcell',costCell)
+        const final_cost=(intialprice_p * product_data.quantity).toFixed(2)
+        const grand_total=calculateCost(product_data.productId,intialprice_p,product_data.quantity).toFixed(2);
+        console.log(final_cost)
+        costCell.textContent = final_cost;
+
+    }
+    function calculateCost(productid,price,quantity) {
+        const cost_total=price * quantity
+        console.log('1',cost_total)
+        productCosts[productid] = parseFloat(cost_total);
+        // Update the total cost by summing all the costs from the productCosts JSON object
+        let grandTotal = 0;
+        for (const key in productCosts) {
+            if (productCosts.hasOwnProperty(key)) {
+                grandTotal += productCosts[key];
+            }
+        }
+        document.getElementById('totalCost').textContent = `$${grandTotal.toFixed(2)}`;
+        return grandTotal;
+    }
+    function addRowToTable(productInfo) {
+        const table = document.getElementById('dataTable');
+        const newRow = table.insertRow(-1);
+
+        newRow.dataset.productid = productInfo.productId;
+
+        // Add cells to the new row
+        const cells = [];
+        for (let i = 0; i < 4; i++) {
+        cells.push(newRow.insertCell(i));
+        }
+
+        cells[0].textContent = table.rows.length - 1; // Serial
+        cells[1].textContent = productInfo.productName; // Product Name
+        cells[2].innerHTML = `
+        <button class="quantity-button" onclick="changeQuantity(this.parentElement, -1)">-</button>
+        <span class="quantity">1</span>
+        <button class="quantity-button" onclick="changeQuantity(this.parentElement, 1)">+</button>
+        `; // Quantity
+        // cells[3].textContent = `$${productInfo.price.toFixed(2)}`; // Price
+        cells[3].textContent = `${productInfo.finalPrice.toFixed(2)}`; // Cost
+  }
+    function updateTable() {
+        const table = document.getElementById('dataTable');
+
+        // Clear the table body before updating
+        table.innerHTML = `
+            <tr>
+            <th>Serial</th>
+            <th>Product Name</th>
+            <th>Quantity</th>
+            <th>Cost</th>
+            </tr>
+        `;
+        console.log('soldProducts',scannedItems)
+        // Add each scanned item to the table
+        scannedItems.forEach((item, index) => {
+            const newRow = table.insertRow();
+            newRow.dataset.productid = item.productId;
+
+            const serialCell = newRow.insertCell();
+            serialCell.textContent = index + 1; // Serial
+
+            const productNameCell = newRow.insertCell();
+            productNameCell.textContent = item.productName; // Product Name
+
+            const quantityCell = newRow.insertCell();
+            quantityCell.innerHTML = `
+            <button class="quantity-button" onclick="changeQuantity(this.parentElement, -1)">-</button>
+            <span class="quantity">${item.quantity}</span>
+            <button class="quantity-button" onclick="changeQuantity(this.parentElement, 1)">+</button>
+            `; // Quantity
+
+            const costCell = newRow.insertCell();
+            calculateCost(item.productId,item.finalPrice,item.quantity)
+            const cost = (item.finalPrice * item.quantity).toFixed(2);
+            costCell.textContent = `$${cost}`; // Cost
+
+        });
+        }
+
+        // Add event listener to the "Paid" button
+        function handlePaidButtonClick() {
+            // Prepare the data to be sent to the server
+            const soldProducts = scannedItems.map(item => ({
+            productId: item.productId,
+            quantitySold: item.quantity,
+            }));
+            console.log('soldProducts',soldProducts);
+            // Send the data to the server
+            fetch('/updateDatabase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(soldProducts),
+            })
+            .then(response => response.json())
+            .then(data => {
+            // Handle the response from the server, if needed
+            console.log('Database updated:', data);
+            })
+            .catch(error => {
+            console.error('Error updating database:', error);
+            });
+
+            // Clear the scannedItems array and reset the table
+            scannedItems.length = 0;
+            updateTable();
+            grandTotal=0
+            document.getElementById('totalCost').textContent = `$${grandTotal.toFixed(2)}`
+            }
+
+        document.getElementById('paidButton').addEventListener('click', handlePaidButtonClick);
+        const inventoryButton = document.getElementById('inventoryButton');
+
+        // Add a click event listener to the button
+        inventoryButton.addEventListener('click', () => {
+        // Redirect the user to the inventory.html page
+        window.location.href = '/inventory';
+        });
+        document.getElementById('logoutButton').addEventListener('click', function () {
+            fetch('/logout', {
+                method: 'POST',
+            })
+            .then(() => {
+                window.location.href = '/login';
+            })
+            .catch((error) => {
+                console.error('Error during logout:', error);
+            });
+            });
+
+  </script>
+</body>
+</html>

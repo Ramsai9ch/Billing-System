@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Registration Page</title>
+  <!-- Add your registration page styles and scripts here -->
+</head>
+<body>
+  <header>
+    <h1>Registration Page</h1>
+  </header>
+
+  <div class="registration-form">
+    <form id="registrationForm">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const username = formData.get('username');
+      const password = formData.get('password');
+
+      // Register the user using dbManager.js
+      registerUser(username, password);
+    });
+
+    function registerUser(username, password) {
+      // Use the dbManager.js function to register the user
+      dbManager.saveUser(username, password) // Replace with the actual function from dbManager.js
+        .then(() => {
+          // After successful registration, redirect to login page
+          window.location.href = 'login.html';
+        })
+        .catch((error) => {
+          console.error('Error registering user:', error);
+          // Handle error, e.g., display an error message to the user
+        });
+    }
+  </script>
+</body>
+</html>

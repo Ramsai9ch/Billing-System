@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Registration</title>
+</head>
+<body>
+  <h1>User Registration</h1>
+  <form id="registrationForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <input type="submit" value="Register">
+  </form>
+
+  <!-- Display error message if registration fails -->
+  <p id="errorMessage"></p>
+  <p id="Sucess Message"></p>
+
+  <!-- Login link -->
+  <p>Already have an account? <a href="/login">Login here</a>.</p>
+
+  <script>
+    document.getElementById('registrationForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // Create an object with the data to be sent in the request body
+      const data = { username, password };
+
+      // Send an HTTP POST request to the /register/POST route on the server
+      fetch('/register/POST', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+        .then(response => response.json())
+        .then(responseData => {
+          console.log('responseData',responseData)
+          // If the response indicates success, redirect to the billing page
+          if (responseData.success) {
+            document.getElementById('Sucess Message').textContent = responseData.message
+            window.location.href = '/login';
+          } else {
+            // If registration fails, display the error message on the page
+            document.getElementById('errorMessage').textContent = responseData.message;
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Handle any error that occurred during the fetch request
+          document.getElementById('errorMessage').textContent = 'Registration failed. Please try again later.';
+        });
+    });
+  </script>
+</body>
+</html>

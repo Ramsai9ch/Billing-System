@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Inventory Management Page</title>
+  <link rel="stylesheet" href="InventoryDesign.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Inventory Management Page</h1>
+    <button class="back-button mb-5" onclick="navigateToIndex()">Back</button>
+    <button class="logout-button1" onclick="navigateToLogin()">Logout</button>
+    
+  </header>
+
+  <div class="container-wrapper">
+    <div class="container">
+      <h2>Top 5 Items Sold</h2>
+      <canvas id="topItemsSoldChart"></canvas>
+    </div>
+
+    <div class="container">
+      <h2>Least 5 Items Sold</h2>
+      <canvas id="leastItemsSoldChart"></canvas>
+    </div>
+  </div>
+  <div class="container">
+    <h2>Updated Database</h2>
+    <div class="scrollable-table">
+      <table id="inventoryTable">
+        <!-- Table headers -->
+        <thead>
+          <tr>
+            <th>Product ID</th>
+            <th>Product Name</th>
+            <th>Quantity Left</th>
+            <th>Items Sold</th>
+            <th>Discount</th>
+            <th>GST</th>
+            <th>Final Price</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Restock Warning</h2>
+    <div class="scrollable-table"></div>
+    <table id="restockingWarning"></table>
+            <!-- Table headers -->
+            <thead>
+              <tr>
+                <th>Product Name</th>
+                <th>Quantity Left</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+  </div>
+
+  <script>
+  //   const topItemsSoldData = {
+  //   labels: ['Product 1', 'Product 2', 'Product 3', 'Product 4', 'Product 5'],
+  //   datasets: [
+  //     {
+  //       label: 'Quantity Sold',
+  //       data: [500, 40, 30, 2000, 10],
+  //       backgroundColor: 'rgba(255, 99, 132, 0.6)',
+  //     },
+  //   ],
+  // };
+  // const responseData = {
+  //       totalproducts,
+  //       topItemsSoldData,
+  //       leastItemsSoldData,
+  //       lowStockItemsData,
+  //     };
+  // const topItemsSoldChart = new Chart(document.getElementById('topItemsSoldChart'), {
+  //   type: 'bar',
+  //   data: topItemsSoldData,
+  //   options: {
+  //     responsive: true,
+  //   },
+  // });
+  // const leastItemsSoldData = {
+  //   labels: ['Product 6', 'Product 7', 'Product 8', 'Product 9', 'Product 10'],
+  //   datasets: [
+  //     {
+  //       label: 'Quantity Sold',
+  //       data: [5, 8, 12, 15, 18],
+  //       backgroundColor: 'rgba(54, 162, 235, 0.6)',
+  //     },
+  //   ],
+  // };
+
+  // const leastItemsSoldChart = new Chart(document.getElementById('leastItemsSoldChart'), {
+  //   type: 'bar',
+  //   data: leastItemsSoldData,
+  //   options: {
+  //     responsive: true,
+  //   },
+  // });
+  // const lowStockItemsData = [
+  //   { product_id: 2, product_name: 'Product B', quantity_left: 30 },
+  //   { product_id: 5, product_name: 'Product E', quantity_left: 40 },
+  // ];
+
+  // Function to display the restocking warning
+  function displayRestockingWarning(data) {
+    const warningContainer = document.getElementById('restockingWarning');
+
+    warningContainer.innerHTML = '';
+
+    if (data.length > 0) {
+      const warningMessage = document.createElement('p');
+      warningMessage.textContent = 'Warning: The following items needs to be restocked:';
+      warningContainer.appendChild(warningMessage);
+
+      const itemList = document.createElement('ul');
+      data.forEach((item) => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${item.productName} (ID: ${item.productId}) - Quantity Left: ${item.qtyLeft}`;
+        itemList.appendChild(listItem);
+      });
+
+      warningContainer.appendChild(itemList);
+    } else {
+      const noWarningMessage = document.createElement('p');
+      noWarningMessage.textContent = 'No items need restocking at the moment.';
+      warningContainer.appendChild(noWarningMessage);
+    }
+  }
+
+  // displayRestockingWarning(lowStockItemsData);
+  // function updateData() {
+    //   fetch('Inventory.php') // Replace 'getData.php' with the URL to your PHP script
+    //     .then(response => response.json())
+    //     .then(data => {
+    //       // Update topItemsSoldChart
+    //       topItemsSoldChart.data.labels = data.topItemsSoldData.map(item => item.product_name);
+    //       topItemsSoldChart.data.datasets[0].data = data.topItemsSoldData.map(item => item.quantity_sold);
+    //       topItemsSoldChart.update();
+
+    //       // Update leastItemsSoldChart
+    //       leastItemsSoldChart.data.labels = data.leastItemsSoldData.map(item => item.product_name);
+    //       leastItemsSoldChart.data.datasets[0].data = data.leastItemsSoldData.map(item => item.quantity_sold);
+    //       leastItemsSoldChart.update();
+
+    //       // Update restocking warning
+    //       displayRestockingWarning(data.lowStockItemsData);
+    //     })
+    //     .catch(error => {
+    //       console.error('Error fetching data:', error);
+    //     });
+    // }
+
+    // Function to display the restocking warning (keep your existing function as is)
+    // ...
+
+    // Call the updateData function to update the charts and restocking warning on page load
+    // updateData();
+
+    // // Set interval to update the data at a fixed interval (e.g., every 10 seconds)
+    // setInterval(updateData, 10000); 
+
+    
+    // Function to update the inventory table
+    function updateInventoryTable(data) {
+      const tableBody = document.querySelector('#inventoryTable tbody');
+      tableBody.innerHTML = ''; // Clear the table body first
+
+      data.forEach((item) => {
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+          <td>${item.productId}</td>
+          <td>${item.productName}</td>
+          <td>${item.qtyLeft}</td>
+          <td>${item.itemsSold}</td>
+          <td>${item.discount}</td>
+          <td>${item.gst}</td>
+          <td>${item.finalPrice}</td>
+        `;
+        tableBody.appendChild(newRow);
+      });
+    }
+
+
+
+    function fetchInventoryData() {
+      fetch('/inventoryData') // Replace this with the actual URL of your backend endpoint
+        .then(response => response.json())
+        .then(data => {
+          updateInventoryTable(data.totalproducts)
+          // Update topItemsSoldChart
+          const topItemsSoldData = {
+            labels: data.topItemsSoldData.map(item => item.productName),
+            datasets: [
+              {
+                label: 'Quantity Sold',
+                data: data.topItemsSoldData.map(item => item.itemsSold),
+                backgroundColor: 'rgba(255, 99, 132, 0.6)',
+              },
+            ],
+          };
+          const topItemsSoldChart = new Chart(document.getElementById('topItemsSoldChart'), {
+            type: 'bar',
+            data: topItemsSoldData,
+            options: {
+              responsive: true,
+            },
+          });
+          // topItemsSoldChart.data = topItemsSoldData;
+          // topItemsSoldChart.update();
+
+          // Update leastItemsSoldChart
+          const leastItemsSoldData = {
+            labels: data.leastItemsSoldData.map(item => item.productName),
+            datasets: [
+              {
+                label: 'Quantity Sold',
+                data: data.leastItemsSoldData.map(item => item.itemsSold),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+              },
+            ],
+          };
+          const leastItemsSoldChart = new Chart(document.getElementById('leastItemsSoldChart'), {
+            type: 'bar',
+            data: leastItemsSoldData,
+            options: {
+              responsive: true,
+            },
+          });
+          // leastItemsSoldChart.data = leastItemsSoldData;
+          // leastItemsSoldChart.update();
+
+          // Display restocking warning
+          console.log('data.lowStockItemsData',data.lowStockItemsData)
+          displayRestockingWarning(data.lowStockItemsData);
+        })
+        .catch(error => {
+          console.error('Error fetching inventory data:', error);
+        });
+    }
+
+
+    // Call the fetchInventoryData function to fetch data on page load
+    fetchInventoryData();
+
+    // Set interval to fetch data at a fixed interval (e.g., every 10 seconds)
+    setInterval(fetchInventoryData, 10000); 
+
+    function navigateToIndex() {
+      window.location.href = '/index';
+    }
+
+    // Function to navigate to the login page (assuming the login page is login.html)
+    function navigateToLogin() {
+      window.location.href = '/login';
+    }
+
+  </script>
+</body>
+</html>
+
+
+

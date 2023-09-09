@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Page</title>
+  <!-- Add your login page styles and scripts here -->
+</head>
+<body>
+  <header>
+    <h1>Login Page</h1>
+  </header>
+
+  <div class="login-form">
+    <form id="loginForm">
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" required>
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+      <button type="submit">Login</button>
+    </form>
+    <p>Don't have an account? <a href="register">Register</a></p>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      const username = formData.get('username');
+      const password = formData.get('password');
+
+      // Authenticate the user using dbManager.js
+      authenticateUser(username, password);
+    });
+
+    function authenticateUser(username, password) {
+      // Use the dbManager.js function to authenticate the user
+      yourAuthenticateFunction(username, password) // Replace with the actual function from dbManager.js
+        .then(() => {
+          // After successful authentication, redirect to index.html
+          window.location.href = 'index.html';
+        })
+        .catch((error) => {
+          console.error('Error authenticating user:', error);
+          // Handle error, e.g., display an error message to the user
+        });
+    }
+  </script>
+</body>
+</html>
